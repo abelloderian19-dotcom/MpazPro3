@@ -264,7 +264,7 @@ keytool -genkeypair -v -keystore mi-llave.jks -alias mi-alias -keyalg RSA -keysi
    esquemas V1 y V2 (están activados en `app/build.gradle.kts`).
 
 `.gitignore` excluye los archivos locales de Gradle y Android Studio. En un repositorio público, no subas el `.jks`, `keystore.properties`, contraseñas ni otros secretos de firma. Entrega la llave por el canal privado que indique el docente. En el README puedes incluir una captura de la firma y del APK, ocultando datos sensibles.
-Versión actual: `versionName 1.0.1`, `versionCode 2`. El build release tiene la minificación desactivada.
+Versión actual: `versionName 1.0.1`, `versionCode 2`. El build release tiene la minificación desactivada. El APK firmado y el certificado público se encuentran en `entrega/`; su SHA-256 y la verificación V1/V2 se anotan en `entrega/VALIDACION.md`. La llave `.jks` y `keystore.properties` se conservan localmente y se entregan al docente por el canal privado que indique.
 
 ## 13. Validación de la entrega
 
@@ -273,7 +273,7 @@ Versión actual: `versionName 1.0.1`, `versionCode 2`. El build release tiene la
 - **Backend del curso**: lo proporciona el docente y no es necesario construirlo para esta entrega. Para la demostración aceptada, usa el modo local con Room.
 - **Persistencia disponible**: demostrar el flujo local con Room y las operaciones de UTP, docente y estudiante.
 - **Pruebas**: ejecutar `gradlew.bat testDebugUnitTest jacocoDebugUnitTestCoverageVerification` en Windows y mostrar el reporte de JaCoCo. Para la interfaz, ejecutar `gradlew.bat connectedDebugAndroidTest` con emulador conectado.
-- **APK firmado**: mostrar el APK de `app/build/outputs/apk/release/app-release.apk`, verificarlo con `apksigner verify --verbose --print-certs` y explicar la firma V1/V2. Mantener la llave privada fuera del repositorio público.
+- **APK firmado**: mostrar `entrega/MPAZPRO3-1.0.1-release.apk`, verificarlo con `apksigner verify --verbose --min-sdk-version 18 --print-certs` y explicar la firma V1/V2. Mantener la llave privada fuera del repositorio público.
 - **Colaboración y modificación en vivo**: mostrar las ramas/commits del repositorio y explicar los cambios técnicos de esta entrega; la prueba de interfaz y la regla de cobertura sirven para explicar el aporte de pruebas.
 - **API REST**: el docente acepta el modo local con Room como equivalente para demostrar persistencia y funcionamiento de la app; presenta ese flujo y describe Retrofit como integración disponible con el backend del curso.
 

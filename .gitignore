@@ -19,3 +19,4 @@ keystore.properties
 .env.*
 !.env.example
 local.properties
+/.android/
