@@ -6,6 +6,7 @@ plugins {
     alias(libs.plugins.kotlin.compose)
     // KSP: genera el código de Room (DAO, base de datos) al compilar.
     alias(libs.plugins.ksp)
+    jacoco
 }
 
 // Datos de firma opcionales: archivo "keystore.properties" en la raíz del proyecto (ver
@@ -53,8 +54,8 @@ android {
         applicationId = "com.mpazpro3.app"
         minSdk = 24
         targetSdk = 35
-        versionCode = 1
-        versionName = "1.0.0"
+        versionCode = 2
+        versionName = "1.0.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
@@ -149,7 +150,36 @@ dependencies {
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.ui.test.junit4)
-    androidTestImplementation(libs.mockk.android)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+}
+
+// La pauta pide medir la cobertura de la lógica de negocio pura (domain/).
+tasks.register<JacocoReport>("jacocoDebugUnitTestReport") {
+    dependsOn(tasks.named("testDebugUnitTest"))
+    executionData.setFrom(fileTree(layout.buildDirectory).include("jacoco/testDebugUnitTest.exec"))
+    classDirectories.setFrom(fileTree(layout.buildDirectory.dir("tmp/kotlin-classes/debug")))
+    sourceDirectories.setFrom(files("src/main/java"))
+    reports {
+        html.required.set(true)
+        xml.required.set(true)
+    }
+}
+
+tasks.register<JacocoCoverageVerification>("jacocoDebugUnitTestCoverageVerification") {
+    dependsOn(tasks.named("testDebugUnitTest"))
+    executionData.setFrom(fileTree(layout.buildDirectory).include("jacoco/testDebugUnitTest.exec"))
+    classDirectories.setFrom(fileTree(layout.buildDirectory.dir("tmp/kotlin-classes/debug")))
+    sourceDirectories.setFrom(files("src/main/java"))
+    violationRules {
+        rule {
+            element = "PACKAGE"
+            includes = listOf("com.mpazpro3.app.domain")
+            limit {
+                counter = "LINE"
+                value = "COVEREDRATIO"
+                minimum = "0.80".toBigDecimal()
+            }
+        }
+    }
 }
