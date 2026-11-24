@@ -1,14 +1,50 @@
-# MPAZ PRO 3° — Proyecto de la Experiencia 3 (integración con servidor)
+# MPAZ PRO 3° — Aplicación móvil de apoyo pedagógico
 
-Aplicación Android (Kotlin, Jetpack Compose con Material 3, MVVM con `ViewModel` + `StateFlow` y Room) para el
-apoyo pedagógico de 3° básico en cuatro asignaturas. El proyecto trae **todos los requerimientos funcionales del
-caso (RF-00 a RF-14) funcionando de forma local con Room** y el andamiaje de la Experiencia 3: una capa remota con
-Retrofit que debes completar para que la app trabaje contra un servidor (API REST), más pruebas unitarias, una
-prueba de interfaz y la generación de un APK firmado. Un interruptor **Modo local / Modo servidor** (sección 5) permite
-alternar entre las dos formas de trabajar sin recompilar.
+Aplicación Android para 3° básico, desarrollada con Kotlin, Jetpack Compose, Material 3, MVVM, Room y Retrofit. Incluye perfiles para Jefatura UTP, docente y estudiante, con funciones de revisión de contenidos, planificación, actividades, evaluación y seguimiento.
 
-El servidor ya está hecho: se entrega aparte, en el archivo `..._Backend.zip` (carpeta `backend/`, Node + Express, sin
-base de datos externa). Tu trabajo es la **app**.
+## Estado frente a la pauta de evaluación
+
+Este repositorio contiene el código de la aplicación Android. **No contiene el código de microservicios Spring Boot ni su base de datos**, tampoco un servidor ejecutable. Las rutas de `ApiService.kt` son el contrato esperado por la app; por sí solas no implementan ni acreditan un microservicio. Además, el modo servidor aún tiene implementaciones pendientes marcadas `TODO(E3-*)`.
+
+La pauta también pide una API externa consumida con Retrofit. En el código actual no encontré una integración con una API externa independiente: `ApiService` define rutas para el backend del proyecto. No presentar esas rutas como API externa.
+
+| Requisito de la pauta | Estado comprobable en este repositorio |
+|---|---|
+| App Android con ejecución local | Implementada con Room; ver pasos de ejecución. |
+| Microservicios Spring Boot y base de datos activa | Pendiente: no están incluidos aquí. |
+| CRUD remoto | Pendiente: hay endpoints declarados, pero la capa remota conserva `TODO(E3-*)`. |
+| API externa consumida y mostrada en la app | Pendiente: no se encontró una integración externa. |
+| Pruebas unitarias y cobertura mínima de 80 % | Hay pruebas JVM; las pruebas de integración remota están incompletas. La cobertura no está acreditada en este README. |
+| APK firmado, `.jks` y evidencias | Se describe cómo generar el APK; añade la evidencia real después de generarlo. No publiques la llave privada ni contraseñas en el repositorio público. |
+| Integrantes, commits, ramas y entrega AVA | Completar/verificar con los datos reales del equipo y las plataformas. |
+
+No marques como ejecutado ningún requisito hasta comprobarlo en vivo en el emulador/dispositivo y en el repositorio.
+
+### Integrantes y colaboración
+
+Ramas de integrantes visibles en este repositorio: `alan`, `javiera`, `matias` y `sigrid`. Completen aquí los nombres completos y sus aportes antes de entregar; la existencia de una rama no demuestra por sí sola qué aporte realizó cada integrante.
+
+### Contrato de rutas declarado por Retrofit
+
+Estas rutas están declaradas en `app/src/main/java/com/mpazpro3/app/data/remote/ApiService.kt` para el microservicio del proyecto. Su implementación en un backend y su funcionamiento deben verificarse antes de presentarlas como endpoints operativos. No se encontró una API externa independiente integrada en la app.
+
+| Método | Ruta | Uso |
+|---|---|---|
+| GET | `/health` | Estado del servicio |
+| POST | `/auth/login`, `/auth/logout` | Inicio y cierre de sesión |
+| GET | `/contenidos`, `/contenidos/{id}` | Listar y consultar contenidos |
+| POST | `/contenidos/{id}/aprobar`, `/contenidos/{id}/rechazar` | Aprobar o rechazar contenido |
+| GET | `/recursos`, `/actividades` | Consultar recursos y actividades |
+| GET | `/asignaciones`; PUT `/cursos/{curso}/asignaciones` | Consultar y modificar asignaciones |
+| GET | `/estudiantes`, `/seguimientos` | Consultar estudiantes y avance |
+| POST | `/estudiantes/{estudianteId}/contenidos/{contenidoId}/material-revisado` | Registrar lectura de material |
+| POST | `/estudiantes/{estudianteId}/actividades/{actividadId}/respuestas` | Registrar respuesta a desafío |
+| POST | `/estudiantes/{estudianteId}/contenidos/{contenidoId}/evaluacion` | Enviar evaluación |
+| GET | `/cursos/{curso}/resultados.csv` | Descargar resultados CSV |
+| GET | `/informes`; POST `/estudiantes/{estudianteId}/informe` | Consultar y generar informe |
+| POST | `/informes/{id}/validar` | Validar informe pedagógico |
+
+`ApiService` consume un contrato REST del backend del proyecto. Una API externa es un servicio de terceros independiente; para cumplir ese requisito se debe integrar y mostrar explícitamente una API de ese tipo.
 
 ## 1. Descripción del caso
 
@@ -120,19 +156,17 @@ Decisiones de diseño:
 - Las reglas viven en `domain/` sin dependencias de Android, por eso se prueban con JUnit en la JVM.
 - Las acciones que modifican datos son `suspend`, se ejecutan fuera del hilo principal y devuelven un `Resultado(exito, mensaje)` que las pantallas muestran con `MensajeResultado`.
 - Las pantallas dibujan lo que hay en Room. Con la API, cada sincronización actualiza Room y la pantalla se refresca sola.
-- Las reglas de negocio (RN-02, RN-03, RN-04…) las valida el servidor; la app solo hace las comprobaciones baratas (motivo, rango de intentos) para responder sin esperar a la red. El servidor tiene la última palabra.
+- En modo servidor, las reglas de negocio deben ser validadas también por el backend. En esta copia del proyecto ese backend no está incluido y las operaciones remotas siguen pendientes; las reglas que sí funcionan localmente se aplican en Room.
 - La base de datos está en la versión 1 y no usa migración destructiva: si cambias el esquema, sube la versión y escribe una `Migration` (en desarrollo basta desinstalar la app).
 
-## 5. Dos modos de ejecución: interruptor "Modo local / Modo servidor"
+## 5. Modos local y servidor
 
-La app trabaja de dos maneras, y se elige con el interruptor **Modo local (sin servidor)** del diálogo **Servidor** (botón al final de
-la pantalla de ingreso). El cambio es inmediato: la preferencia se guarda en el dispositivo y se lee en **cada operación**, no solo al abrir la app.
-Una franja fija en la parte superior de todas las pantallas dice "Modo local" o "Modo servidor".
+La app permite elegir el modo con el interruptor **Modo local (sin servidor)** del diálogo **Servidor**. El modo local usa Room y los datos de ejemplo. El modo servidor es una integración incompleta: varias operaciones todavía lanzan `NotImplementedError` porque conservan `TODO(E3-*)`. Para la demostración actual, usa el modo local hasta completar y conectar un backend compatible.
 
 | Modo | Qué hace la app |
 |---|---|
 | **Modo local** (valor inicial con `USAR_API=false`) | Funciona completa y sin servidor, solo con Room: ingreso con el hash local, y todas las acciones con escritura (aprobar/rechazar, asignar, material, desafíos, evaluación con intentos, CSV, informes) con las mismas funciones puras de `domain/` y los mismos mensajes del servidor. No se ejecuta nada de la capa remota. Es el respaldo para demostrar sin servidor. |
-| **Modo servidor** (valor inicial con `USAR_API=true`) | Login contra `/auth/login`, lectura desde el servidor (Room queda como copia) y cada acción que modifica datos se envía primero al servidor. **Depende de lo que completes en los `TODO(E3-n)`.** |
+| **Modo servidor** (valor inicial con `USAR_API=true`) | No está listo para una demostración completa: el backend no está incluido y las llamadas/caché remotas tienen implementaciones pendientes `TODO(E3-n)`. |
 
 **`USAR_API` solo define el valor INICIAL del interruptor** (`gradle.properties` → `BuildConfig.USAR_API`; también `-PUSAR_API=true` al compilar).
 En cuanto eliges un modo en el diálogo Servidor, manda lo guardado en el dispositivo y `USAR_API` ya no influye (para volver al valor
@@ -149,14 +183,11 @@ Mientras un `TODO` esté sin completar, la función correspondiente del modo ser
 ("An operation is not implemented: E3-3b: ..."); la app lo muestra como aviso en vez de cerrarse. Por eso conviene pasar a
 modo servidor recién cuando hayas terminado las partes 2 y 3 de la guía.
 
-> En la defensa debe mostrarse el **modo servidor** (integración con la API); el modo local es solo respaldo.
+> No presentes el modo servidor como funcional hasta incorporar el backend compatible y completar sus `TODO(E3-*)`. Para la versión actual, demuestra las funciones implementadas en modo local y explica esta limitación.
 
 ## 6. Qué debes completar: los TODO de la Experiencia 3
 
-Cada `TODO(E3-n)` está en el código, dice **qué hacer, en qué archivo y con qué criterio de aceptación**. Búscalos con
-*Edit > Find in Files* (`Ctrl+Shift+F`) escribiendo `TODO(E3`. Ya están hechos, y no debes cambiar su forma:
-`Dtos.kt` y `ApiService.kt` (son el contrato con el servidor, ver `backend/docs/API.md`), `ApiResult`, `SesionApi`,
-`Conectividad`, la cola de pendientes, `CacheLocal`, `AppContenedor`, el modo local, las pantallas y el `ViewModel`.
+Los `TODO(E3-n)` indican trabajo pendiente para completar la integración con un backend. Búscalos con *Edit > Find in Files* (`Ctrl+Shift+F`) escribiendo `TODO(E3`. `Dtos.kt` y `ApiService.kt` describen el contrato esperado, pero no hay documentación ni código del servidor en este repositorio.
 
 | Código | Archivo | Qué se hace |
 |---|---|---|
@@ -185,27 +216,23 @@ Requisitos: Android Studio (Koala o posterior), JDK 17 y Android SDK 35.
 **Modo local** (valor inicial con `USAR_API=false`): los datos de ejemplo se cargan solos la primera vez que se abre la aplicación y no
 se necesita ningún servidor.
 
-**Modo servidor** (valor inicial con `USAR_API=true`, o activándolo en el diálogo **Servidor**, interruptor apagado):
+**Modo servidor:** requiere primero agregar y ejecutar un backend compatible con las rutas de `ApiService.kt`, completar los `TODO(E3-*)` y configurar su URL. No hay comandos de arranque de microservicios para este repositorio. Las instrucciones de URL siguientes solo aplican cuando exista ese servidor.
 
-1. Levantar el servidor (ver su propio `README.md`): `cd backend && npm install && npm start` y comprobar `http://localhost:3000/health`.
+1. Configurar la URL del servidor en el diálogo **Servidor** o mediante `API_BASE_URL`.
 2. Elegir la URL que corresponda:
 
 | Dónde corre la app | URL en la app |
 |---|---|
-| Emulador de Android Studio | `http://10.0.2.2:3000/` (valor por defecto de `API_BASE_URL`) |
-| Teléfono físico en la misma red Wi-Fi que el PC | `http://<IP del PC>:3000/` (por ejemplo `http://192.168.1.20:3000/`) |
-| Teléfono fuera de la red del PC | URL https pública de VS Code Port Forwarding (puerto 3000 con visibilidad **Pública**) |
+| Emulador de Android Studio | `http://10.0.2.2:3000/` (valor por defecto de `API_BASE_URL`; requiere backend compatible) |
+| Teléfono físico en la misma red Wi-Fi que el PC | `http://<IP del PC>:3000/` (ejemplo; requiere backend compatible) |
+| Teléfono fuera de la red del PC | URL HTTPS pública del backend desplegado |
 
    La URL inicial sale de `API_BASE_URL` en `gradle.properties` (o `-PAPI_BASE_URL=...` al compilar). Para cambiarla sin
    recompilar, en el login toca **Servidor**, escribe la URL, **Probar conexión** y **Guardar**. Las direcciones
    `http://` solo se aceptan hacia el emulador, `localhost` y redes locales; cualquier servidor público debe usar `https://`.
 3. Ingresar con los usuarios de la sección 2.
 
-Solución de problemas: **"No se pudo conectar"** → confirma que el servidor corre y que la URL es la correcta; en el
-emulador `localhost` es el propio emulador, el PC se ve como `10.0.2.2`; si un teléfono físico no llega, permite el
-puerto 3000 de Node.js en el firewall y revisa que ambos estén en la misma red. **"Datos que la app no entiende"** con
-Port Forwarding → el puerto está en visibilidad privada (responde una página de acceso en vez del JSON). **"Tu sesión
-expiró"** → el servidor perdió la sesión (por ejemplo, tras `npm run reset`): cierra sesión y vuelve a ingresar.
+Solución de problemas de conexión: comprueba que el backend compatible esté en ejecución y que la URL corresponda al dispositivo. En el emulador, el PC se alcanza normalmente con `10.0.2.2`; en un teléfono se usa la IP o URL accesible desde el dispositivo.
 
 ## 8. Cómo correr las pruebas
 
@@ -220,8 +247,7 @@ Pruebas unitarias JVM (JUnit 4, sin emulador) en `app/src/test`:
 - **Esqueletos con `@Ignore("E3: completar")`** (cada archivo lista los casos que debe cubrir): `ApiServiceMockWebServerTest`, `ErroresApiTest`, `MapeadoresTest`, `UrlServidorTest`, `RepositorioSincronizadoTest`. Al completar cada uno, quita el `@Ignore`. Entre todos suman más de 15 casos, incluidos 400/401/403/404/409, sin red, timeout, cuerpo mal formado, mapeadores y caché. `data/Fakes.kt` trae las utilidades ya hechas (ApiService, conectividad y copia local falsos).
 - **Prueba de interfaz** (`app/src/androidTest/.../LoginUiTest.kt`, 3 casos con `@Ignore`): se ejecuta en emulador o dispositivo con `./gradlew connectedDebugAndroidTest`.
 
-El reporte queda en `app/build/reports/tests/testDebugUnitTest/index.html`. Las pruebas del servidor están en `backend/test`
-(`cd backend && npm test`).
+El reporte queda en `app/build/reports/tests/testDebugUnitTest/index.html`. Este repositorio no contiene pruebas de microservicios.
 
 ## 9. Cómo generar el APK firmado
 
@@ -241,7 +267,7 @@ keytool -genkeypair -v -keystore mi-llave.jks -alias mi-alias -keyalg RSA -keysi
 3. Generar el APK: `./gradlew assembleRelease`. Queda en `app/build/outputs/apk/release/app-release.apk`, firmado con
    esquemas V1 y V2 (están activados en `app/build.gradle.kts`).
 
-`.gitignore` excluye `local.properties`, `build/`, `.gradle/`, `.idea/` y `.kotlin/`. Para la evaluación, el `.jks` (llave exclusiva de esta entrega), el APK firmado y su configuración van en el repositorio; no reutilices esa llave en otra app.
+`.gitignore` excluye los archivos locales de Gradle y Android Studio. En un repositorio público, no subas el `.jks`, `keystore.properties`, contraseñas ni otros secretos de firma. Entrega la llave por el canal privado que indique el docente. En el README puedes incluir una captura de la firma y del APK, ocultando datos sensibles.
 Versión actual: `versionName 1.0.0`, `versionCode 1` (sube `versionCode` con cada entrega). El build release tiene la minificación desactivada.
 
 ## 10. Material didáctico y orígenes (RNF-05)
@@ -255,14 +281,15 @@ Versión actual: `versionName 1.0.0`, `versionCode 1` (sube `versionCode` con ca
 
 ## 11. Tarea pendiente: validar los códigos OA
 
-Los Objetivos de Aprendizaje figuran como `OA (por confirmar)` en los datos de ejemplo. Parte de tu trabajo es buscar el
-código oficial de cada uno de los cuatro contenidos en el sitio del Currículum Nacional del Ministerio de Educación
-(3° básico: Lenguaje y Comunicación, Matemática, Ciencias Naturales e Historia, Geografía y Ciencias Sociales), comprobar
-que el texto del objetivo coincide y anotarlo en la bitácora. Luego cámbialo en `data/DatosIniciales.kt`
-(constante `CODIGO_POR_CONFIRMAR` y los cuatro `codigoOA`) **y** en `backend/data/seed.json` (campo `codigoOA`), ejecuta
-`npm run reset` en el servidor y desinstala la app del dispositivo para que Room tome los datos nuevos.
+Los Objetivos de Aprendizaje figuran como `OA (por confirmar)` en los datos de ejemplo. Verifica el código oficial de cada contenido en el Currículum Nacional y actualiza los valores en `app/src/main/java/com/mpazpro3/app/data/DatosIniciales.kt`. Cuando exista el backend, sincroniza también su semilla de datos.
 
-## 12. Qué sigue
+## 12. Próximos pasos para cumplir la pauta
 
-- **Seguridad real**: el servidor es de demostración (sal fija, tokens sin vencimiento, sin límite de intentos). Para producción: HTTPS obligatorio, sal por usuario con bcrypt/Argon2, vencimiento de sesión y limitación de peticiones.
-- **Despliegue**: el servidor puede publicarse en un servicio gratuito (Render, Railway o Koyeb) con `npm start`.
+1. Incorporar al repositorio el/los microservicios solicitados en Spring Boot y su persistencia, con instrucciones para ejecutarlos desde cero.
+2. Completar los `TODO(E3-*)` de Retrofit, mapeadores, caché Room y repositorio sincronizado; demostrar operaciones CRUD contra el servicio.
+3. Integrar una API externa distinta del microservicio y mostrar los datos en la interfaz.
+4. Completar y ejecutar las pruebas pendientes, generar el reporte de cobertura y comprobar el 80 % exigido.
+5. Añadir los nombres reales de integrantes y evidencias de la ejecución, APK y firma sin exponer secretos.
+6. Verificar los commits por integrante, las ramas, la carga en AVA y el enlace individual antes de la fecha límite.
+
+La app local puede ejecutarse desde cero siguiendo la sección 7. Los pasos de backend, CRUD remoto, API externa, cobertura y firma final deben documentarse de nuevo cuando estén implementados y verificados.

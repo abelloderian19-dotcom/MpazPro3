@@ -10,5 +10,11 @@ captures/
 .cxx/
 .DS_Store
 
-# Llave de evaluación: la pauta pide incluir el .jks, el APK firmado y su configuración en el repositorio
+# Secretos y credenciales: no publicar llaves de firma ni configuración privada
+*.jks
+*.keystore
+keystore.properties
+.env
+.env.*
+!.env.example
 local.properties
