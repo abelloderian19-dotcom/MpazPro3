@@ -247,9 +247,7 @@ El reporte queda en `app/build/reports/tests/testDebugUnitTest/index.html`. Este
 
 ## 9. Cómo generar el APK firmado
 
-El repositorio **no contiene llaves ni contraseñas**. La firma es opcional: sin datos de firma, `./gradlew assembleRelease`
-genera un APK sin firmar (`app-release-unsigned.apk`). Los pasos completos (crear el `.jks`, firmas V1 y V2, instalar,
-verificar y registrar la bitácora) están en la guía de la actividad, Parte 6. En resumen:
+El APK firmado requerido para la entrega está en `entrega/MPAZPRO3-1.0.1-release.apk`. Su certificado público, huellas SHA-256 y verificación de firma V1/V2 están en `entrega/VALIDACION.md`. El `.jks` y sus contraseñas se mantienen fuera del repositorio público y se entregan al docente por el canal privado indicado. Para generar o reemplazar la llave y el APK:
 
 1. Crear una llave propia (una sola vez, exclusiva para esta entrega):
 
