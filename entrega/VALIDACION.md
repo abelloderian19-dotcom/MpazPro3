@@ -7,6 +7,8 @@
 - Certificado público: `MPAZPRO3-certificado-publico.der`
 - Huella SHA-256 del certificado: `273b640a279e3dd7bf1081d9ef48117be1ca7276e63bea6fbd1e98021e8e1b19`
 - SHA-256 del APK: `43bc3483d2f6d4f2b720cfbb9c08c3c54cf956646cd76a4f3ebb5b138d9f40c7`
+- Pruebas JVM: 169 casos descubiertos, 0 fallos y 47 casos REST ignorados; JaCoCo mide 99,5% de líneas cubiertas en `domain/` (mínimo exigido: 80%).
+- Prueba UI: 3 de 3 casos pasaron en Android 17/API 37 con Espresso 3.7.0.
 
 Para repetir la verificación en Windows:
 

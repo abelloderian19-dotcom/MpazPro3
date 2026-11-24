@@ -80,6 +80,10 @@ android {
     }
 
     buildTypes {
+        debug {
+            // Permite correr pruebas instrumentadas sin reemplazar la app de release instalada.
+            applicationIdSuffix = ".debug"
+        }
         release {
             isMinifyEnabled = false
             proguardFiles(

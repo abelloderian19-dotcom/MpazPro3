@@ -1,5 +1,6 @@
 package com.mpazpro3.app.ui
 
+import android.content.Context
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.onAllNodesWithText
@@ -7,9 +8,12 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import androidx.test.platform.app.InstrumentationRegistry
 import com.mpazpro3.app.navigation.AppNavigation
 import com.mpazpro3.app.ui.theme.MpazPro3Theme
 import org.junit.Rule
+import org.junit.After
+import org.junit.Before
 import org.junit.Test
 import org.junit.Assert.assertTrue
 import org.junit.runner.RunWith
@@ -32,11 +36,32 @@ import org.junit.runner.RunWith
 @RunWith(AndroidJUnit4::class)
 class LoginUiTest {
 
+    private val preferencias by lazy {
+        InstrumentationRegistry.getInstrumentation().targetContext
+            .getSharedPreferences("mpazpro3_modo", Context.MODE_PRIVATE)
+    }
+    private var habiaPreferenciaModo = false
+    private var modoAnterior = false
+
     @get:Rule
     val composeRule = createComposeRule()
 
     private fun abrirApp() {
         composeRule.setContent { MpazPro3Theme { AppNavigation() } }
+    }
+
+    @Before
+    fun activarModoLocalParaLaPrueba() {
+        habiaPreferenciaModo = preferencias.contains("modoLocal")
+        modoAnterior = preferencias.getBoolean("modoLocal", true)
+        preferencias.edit().putBoolean("modoLocal", true).commit()
+    }
+
+    @After
+    fun restaurarModoAnterior() {
+        preferencias.edit().apply {
+            if (habiaPreferenciaModo) putBoolean("modoLocal", modoAnterior) else remove("modoLocal")
+        }.commit()
     }
 
     @Test
