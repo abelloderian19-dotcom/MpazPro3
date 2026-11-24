@@ -241,15 +241,13 @@ Pruebas unitarias JVM (JUnit 4, sin emulador) en `app/src/test`:
 - **Modo local (ya funcionan, 44 casos activos)**: `SelectorFuenteTest` (el selector elige la fuente según la preferencia y la relee en cada operación, también al cambiar de modo en caliente), `RepositorioLocalTest` (ingreso con hash local y cada acción con escritura con sus reglas: casos correctos y errores de RN-02, RN-03, RN-04, informe validado y CSV) y `ReglasModoLocalTest`. Usan una base en memoria (`AlmacenLocalMemoria` en `data/FakesLocal.kt`); no los marques con `@Ignore`.
 - **Cobertura de negocio**: `./gradlew jacocoDebugUnitTestCoverageVerification` exige al menos 80% de cobertura de líneas en `domain/`; `./gradlew jacocoDebugUnitTestReport` genera el reporte HTML en `app/build/reports/jacoco/jacocoDebugUnitTestReport/html/index.html`. La cobertura medida para `domain/` es 99,5%; no representa cobertura del proyecto completo.
 - **Modo servidor opcional**: las pruebas `ApiServiceMockWebServerTest`, `ErroresApiTest`, `MapeadoresTest`, `UrlServidorTest` y `RepositorioSincronizadoTest` cubren la integración remota y permanecen ignoradas junto con los TODO correspondientes. No forman parte del flujo local aceptado por el docente.
-- **Prueba de interfaz** (`app/src/androidTest/.../LoginUiTest.kt`, 3 casos): valida campos vacíos, credenciales incorrectas y el ingreso del estudiante; se compila con `./gradlew assembleDebugAndroidTest` y se ejecuta en emulador/dispositivo con `./gradlew connectedDebugAndroidTest`.
+- **Prueba de interfaz** (`app/src/androidTest/.../LoginUiTest.kt`, 3 casos): valida campos vacíos, credenciales incorrectas y el ingreso del estudiante. Los tres casos pasaron en un dispositivo Android 17/API 37 con `./gradlew connectedDebugAndroidTest`. Espresso 3.7.0 es necesario para esa versión. La variante debug usa el identificador `com.mpazpro3.app.debug` para no reemplazar una app release instalada y restaura la preferencia de modo al terminar.
 
 El reporte queda en `app/build/reports/tests/testDebugUnitTest/index.html`. Este repositorio no contiene pruebas de microservicios.
 
 ## 9. Cómo generar el APK firmado
 
-El repositorio **no contiene llaves ni contraseñas**. La firma es opcional: sin datos de firma, `./gradlew assembleRelease`
-genera un APK sin firmar (`app-release-unsigned.apk`). Los pasos completos (crear el `.jks`, firmas V1 y V2, instalar,
-verificar y registrar la bitácora) están en la guía de la actividad, Parte 6. En resumen:
+El APK firmado requerido para la entrega está en `entrega/MPAZPRO3-1.0.1-release.apk`. Su certificado público, huellas SHA-256 y verificación de firma V1/V2 están en `entrega/VALIDACION.md`. El `.jks` y sus contraseñas se mantienen fuera del repositorio público y se entregan al docente por el canal privado indicado. Para generar o reemplazar la llave y el APK:
 
 1. Crear una llave propia (una sola vez, exclusiva para esta entrega):
 
