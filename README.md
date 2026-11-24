@@ -209,6 +209,8 @@ Orden recomendado: E3-1 → E3-2 → E3-3 → E3-4 → E3-5 → E3-9 → E3-6 �
 
 Requisitos: Android Studio (Koala o posterior), JDK 17 y Android SDK 35.
 
+En Android Studio, configura **Settings > Build, Execution, Deployment > Build Tools > Gradle > Gradle JDK** en JDK 17. Esta plantilla usa AGP 8.5.2; si Android Studio selecciona JDK 25, Gradle puede fallar antes de compilar. Instala JDK 17 si no aparece en la lista.
+
 1. Abrir la carpeta del proyecto en Android Studio y esperar la sincronización de Gradle.
 2. Elegir un emulador o dispositivo (Android 7.0 / API 24 o superior).
 3. Ejecutar la configuración `app`, o por consola: `./gradlew assembleDebug` (en Windows: `gradlew.bat assembleDebug`).
@@ -244,8 +246,9 @@ Pruebas unitarias JVM (JUnit 4, sin emulador) en `app/src/test`:
 
 - **Ya funcionan**: reglas de negocio de `domain/` (acceso, contenidos, planificación, desafíos, evaluación, progreso, informe, CSV), coherencia de los datos de ejemplo, el contrato de los DTO (`ContratoDtoTest`) y la regla de hosts permitidos para `http` (`HostPermiteHttpTest`).
 - **Modo local (ya funcionan, 44 casos activos)**: `SelectorFuenteTest` (el selector elige la fuente según la preferencia y la relee en cada operación, también al cambiar de modo en caliente), `RepositorioLocalTest` (ingreso con hash local y cada acción con escritura con sus reglas: casos correctos y errores de RN-02, RN-03, RN-04, informe validado y CSV) y `ReglasModoLocalTest`. Usan una base en memoria (`AlmacenLocalMemoria` en `data/FakesLocal.kt`); no los marques con `@Ignore`.
-- **Esqueletos con `@Ignore("E3: completar")`** (cada archivo lista los casos que debe cubrir): `ApiServiceMockWebServerTest`, `ErroresApiTest`, `MapeadoresTest`, `UrlServidorTest`, `RepositorioSincronizadoTest`. Al completar cada uno, quita el `@Ignore`. Entre todos suman más de 15 casos, incluidos 400/401/403/404/409, sin red, timeout, cuerpo mal formado, mapeadores y caché. `data/Fakes.kt` trae las utilidades ya hechas (ApiService, conectividad y copia local falsos).
-- **Prueba de interfaz** (`app/src/androidTest/.../LoginUiTest.kt`, 3 casos con `@Ignore`): se ejecuta en emulador o dispositivo con `./gradlew connectedDebugAndroidTest`.
+- **Cobertura de negocio**: `./gradlew jacocoDebugUnitTestCoverageVerification` exige al menos 80% de cobertura de líneas en `domain/`; `./gradlew jacocoDebugUnitTestReport` genera el reporte HTML en `app/build/reports/jacoco/jacocoDebugUnitTestReport/html/index.html`. La cobertura medida para `domain/` es 99,5%; no representa cobertura del proyecto completo.
+- **REST pendiente**: `ApiServiceMockWebServerTest`, `ErroresApiTest`, `MapeadoresTest`, `UrlServidorTest` y `RepositorioSincronizadoTest` siguen ignorados porque requieren completar la integración con la API. Esta entrega deja ese alcance pendiente por falta del ambiente backend.
+- **Prueba de interfaz** (`app/src/androidTest/.../LoginUiTest.kt`, 3 casos): valida campos vacíos, credenciales incorrectas y el ingreso del estudiante; se compila con `./gradlew assembleDebugAndroidTest` y se ejecuta en emulador/dispositivo con `./gradlew connectedDebugAndroidTest`.
 
 El reporte queda en `app/build/reports/tests/testDebugUnitTest/index.html`. Este repositorio no contiene pruebas de microservicios.
 
@@ -268,7 +271,18 @@ keytool -genkeypair -v -keystore mi-llave.jks -alias mi-alias -keyalg RSA -keysi
    esquemas V1 y V2 (están activados en `app/build.gradle.kts`).
 
 `.gitignore` excluye los archivos locales de Gradle y Android Studio. En un repositorio público, no subas el `.jks`, `keystore.properties`, contraseñas ni otros secretos de firma. Entrega la llave por el canal privado que indique el docente. En el README puedes incluir una captura de la firma y del APK, ocultando datos sensibles.
-Versión actual: `versionName 1.0.0`, `versionCode 1` (sube `versionCode` con cada entrega). El build release tiene la minificación desactivada.
+Versión actual: `versionName 1.0.1`, `versionCode 2`. El build release tiene la minificación desactivada.
+
+## 13. Validación de la entrega
+
+- **Inicio y entorno**: ejecutar la app en emulador/dispositivo con Android Studio, JDK 17 y SDK 35. El modo local no requiere backend.
+- **Arquitectura**: explicar MVVM, `model/`, `domain/`, `data/`, `viewmodel/`, `navigation/` y `ui/` según la sección 4. Esta base contiene la app Android; no contiene microservicios Spring Boot.
+- **Microservicios, API y persistencia remota**: pendientes hasta contar con el ambiente backend. La integración REST descrita en las secciones 5 y 6 no se presenta como funcional mientras existan esos TODO.
+- **Persistencia disponible**: demostrar el flujo local con Room y las operaciones de UTP, docente y estudiante.
+- **Pruebas**: ejecutar `gradlew.bat testDebugUnitTest jacocoDebugUnitTestCoverageVerification` en Windows y mostrar el reporte de JaCoCo. Para la interfaz, ejecutar `gradlew.bat connectedDebugAndroidTest` con emulador conectado.
+- **APK firmado**: mostrar el APK de `app/build/outputs/apk/release/app-release.apk`, verificarlo con `apksigner verify --verbose --print-certs` y explicar la firma V1/V2. Mantener la llave privada fuera del repositorio público.
+- **Colaboración y modificación en vivo**: mostrar las ramas/commits del repositorio y explicar los cambios técnicos de esta entrega; la prueba de interfaz y la regla de cobertura sirven para explicar el aporte de pruebas.
+- **Pendiente de confirmación docente**: la lista de cotejo menciona Spring Boot, API externa y CRUD remoto, pero no aparecen en esta plantilla. Confirmar con el docente si deben incorporarse como proyecto/backend separado o quedan fuera de esta entrega.
 
 ## 10. Material didáctico y orígenes (RNF-05)
 

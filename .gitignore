@@ -1,6 +1,7 @@
 # Android / Gradle
 *.iml
 .gradle/
+/.jdk17/
 .idea/
 .kotlin/
 build/
