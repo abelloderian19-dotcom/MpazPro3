@@ -9,20 +9,9 @@ import androidx.room.Relation
 import androidx.room.Transaction
 import kotlinx.coroutines.flow.Flow
 
-/*
- * Un DAO declara QUÉ consultas se necesitan; Room genera la implementación al compilar.
- *  - fun suspend: se ejecuta una vez, fuera del hilo principal.
- *  - fun que devuelve Flow: emite de nuevo cada vez que cambia la tabla, y así las pantallas
- *    se actualizan solas.
- */
-
 @Dao
 interface UsuarioDao {
 
-    /**
-     * RF-00: busca credenciales válidas. COLLATE NOCASE ignora mayúsculas en el usuario; la
-     * clave se compara por su resumen SHA-256 y SÍ distingue mayúsculas.
-     */
     @Query("SELECT * FROM usuarios WHERE usuario = :usuario COLLATE NOCASE AND claveHash = :claveHash LIMIT 1")
     suspend fun buscarPorCredenciales(usuario: String, claveHash: String): UsuarioEntity?
 
@@ -70,7 +59,6 @@ interface ContenidoDao {
     @Query("SELECT COUNT(*) FROM contenidos")
     suspend fun contar(): Int
 
-    /** RF-01: cambia el estado y la observación de UTP de un contenido. */
     @Query("UPDATE contenidos SET estado = :estado, observacionUtp = :observacion WHERE id = :id")
     suspend fun actualizarEstado(id: String, estado: String, observacion: String)
 
@@ -230,7 +218,6 @@ interface InformeDao {
     @Query("DELETE FROM informes")
     suspend fun borrarTodos()
 
-    /** RN-05: el estado solo cambia en filas que siguen en BORRADOR. Devuelve las filas afectadas. */
     @Query("UPDATE informes SET estado = 'VALIDADO' WHERE id = :id AND estado = 'BORRADOR'")
     suspend fun validar(id: String): Int
 }
