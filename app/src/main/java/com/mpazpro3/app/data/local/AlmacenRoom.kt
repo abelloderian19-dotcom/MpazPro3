@@ -9,12 +9,7 @@ import com.mpazpro3.app.model.InformeDocente
 import com.mpazpro3.app.model.SeguimientoAvance
 import com.mpazpro3.app.model.Usuario
 
-/**
- * AlmacenLocal sobre la base Room del modo local. Solo lee y guarda; las decisiones las toma
- * RepositorioLocal con las funciones puras de domain/.
- *
- * [sembrar] vuelve a cargar los datos de ejemplo (MpazProRepositorio.sembrarSiEstaVacia de esa misma base).
- */
+
 class AlmacenRoom(
     private val db: AppDatabase,
     private val sembrar: suspend () -> Unit
