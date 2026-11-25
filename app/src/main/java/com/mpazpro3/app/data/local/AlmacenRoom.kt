@@ -35,8 +35,7 @@ class AlmacenRoom(
     override suspend fun autenticar(usuarioNormalizado: String, claveHash: String): Usuario? =
         db.usuarioDao().buscarPorCredenciales(usuarioNormalizado, claveHash)?.aDominio()
 
-    // Los contenidos se actualizan con UPDATE y no con REPLACE: reemplazar una fila de "contenidos"
-    // borraría en cascada sus recursos, actividades, asignaciones y seguimientos.
+
     override suspend fun actualizarContenido(contenidoId: String, estado: EstadoAprobacion, observacion: String) {
         db.contenidoDao().actualizarEstado(contenidoId, estado.name, observacion)
     }
@@ -62,7 +61,6 @@ class AlmacenRoom(
 
     override suspend fun restablecer() {
         db.withTransaction {
-            // Primero los hijos, para no depender de los borrados en cascada.
             db.respuestaDao().borrarTodas()
             db.seguimientoDao().borrarTodos()
             db.informeDao().borrarTodos()
